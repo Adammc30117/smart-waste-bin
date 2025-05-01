@@ -1,14 +1,20 @@
+# --- TUS Moylish Bin Dashboard (app.py) ---
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import mysql.connector
 import pandas as pd
 from datetime import datetime
+import plotly.graph_objects as go
+
+st.set_page_config(page_title="Smart Waste Bin", layout="centered")
+st_autorefresh(interval=5000, limit=None, key="weight_data_refresh")
 
 # --- Database Connection ---
 def get_connection():
     return mysql.connector.connect(
         host="localhost",
-        user="root",            # adjust if needed
-        password="",            # add password if your MySQL has one
+        user="root",
+        password="Limerick3011.",
         database="smart_bins"
     )
 
@@ -38,6 +44,30 @@ def get_history():
     conn.close()
     return df
 
+# --- Fetch pickups ---
+def get_pickups():
+    conn = get_connection()
+    query = """
+        SELECT * FROM scheduled_pickups 
+        WHERE bin_id = 'TUS_Moylish' 
+        ORDER BY scheduled_time DESC
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+# --- Fetch hesitation events ---
+def get_hesitations():
+    conn = get_connection()
+    query = """
+        SELECT * FROM hesitation_events 
+        WHERE bin_id = 'TUS_Moylish' 
+        ORDER BY detected_at DESC
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
 # --- Schedule pickup ---
 def schedule_pickup():
     conn = get_connection()
@@ -50,22 +80,8 @@ def schedule_pickup():
     cursor.close()
     conn.close()
 
-# --- Get upcoming pickups ---
-def get_pickups():
-    conn = get_connection()
-    query = """
-        SELECT * FROM scheduled_pickups 
-        WHERE bin_id = 'TUS_Moylish' 
-        ORDER BY scheduled_time DESC
-    """
-    df = pd.read_sql(query, conn)
-    conn.close()
-    return df
-
-# --- Streamlit UI ---
-st.set_page_config(page_title="Smart Waste Bin", layout="centered")
-st.title("🗑️ TUS Moylish Bin Dashboard")
-
+# --- UI ---
+st.title("🔑️ TUS Moylish Bin Dashboard")
 data = get_latest_data()
 
 if data is not None:
@@ -75,24 +91,96 @@ if data is not None:
 
     if data['status'].strip().lower() == "full":
         st.error("⚠️ Bin is full! Schedule a pickup.")
-
         if st.button("📦 Schedule Pickup"):
             schedule_pickup()
             st.success("✅ Pickup has been scheduled.")
     else:
         st.success("✅ Bin is operating normally.")
 
+    # --- Pickup Metrics ---
+    pickups = get_pickups()
+    total = len(pickups)
+    completed = len(pickups[pickups['status'] == 'Completed'])
+    in_progress = len(pickups[pickups['status'] == 'In Progress'])
+    pending = total - completed - in_progress
 
-    with st.expander("📈 View recent data history"):
+    st.subheader("📊 Pickup Metrics")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("📦 Total", total)
+    col2.metric("✅ Completed", completed)
+    col3.metric("🚚 In Progress", in_progress)
+    col4.metric("⏳ Pending", pending)
+
+    # --- History Chart with Plotly ---
+    with st.expander("📈 View Fill & Weight History"):
         history = get_history()
-        st.dataframe(history)
+        fig = go.Figure()
 
-    with st.expander("📦 View scheduled pickups"):
-        pickups = get_pickups()
+        fig.add_trace(go.Scatter(
+            x=history['timestamp'],
+            y=history['fill_percent'],
+            name="Fill Level (%)",
+            yaxis="y1"
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=history['timestamp'],
+            y=history['weight_kg'],
+            name="Weight (kg)",
+            yaxis="y2"
+        ))
+
+        fig.update_layout(
+            yaxis=dict(title="Fill Level (%)", range=[0, 100]),
+            yaxis2=dict(title="Weight (kg)", overlaying="y", side="right", range=[0, 2]),
+            title="Fill Level & Weight Over Time",
+            xaxis_title="Timestamp",
+            legend_title="Metrics"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # --- Scheduled Pickups Table ---
+    with st.expander("📦 View Scheduled Pickups"):
         if not pickups.empty:
             st.dataframe(pickups)
         else:
             st.info("No pickups scheduled yet.")
 
+    # --- Hesitation Events ---
+    hesitations = get_hesitations()
+    st.subheader("🕵️‍♂️ Hesitation Events")
+    st.metric("🔄 Total Hesitations Logged", len(hesitations))
+
+    # --- Filter dropdown ---
+    filter_option = st.selectbox("🔍 Filter Hesitations By", ["All Time", "Last 7 Days", "This Month"])
+
+    if filter_option == "Last 7 Days":
+        hesitations = hesitations[hesitations['detected_at'] > pd.Timestamp.now() - pd.Timedelta(days=7)]
+    elif filter_option == "This Month":
+        hesitations = hesitations[hesitations['detected_at'].dt.month == datetime.now().month]
+
+    # --- Date Range Picker ---
+    if not hesitations.empty:
+        min_date = hesitations['detected_at'].min().date()
+        max_date = hesitations['detected_at'].max().date()
+        start_date, end_date = st.date_input("🗓️ Select Date Range:", [min_date, max_date])
+
+        hesitations = hesitations[(hesitations['detected_at'].dt.date >= start_date) &
+                                  (hesitations['detected_at'].dt.date <= end_date)]
+
+        # --- Chart ---
+        if not hesitations.empty:
+            daily = hesitations['detected_at'].dt.date.value_counts().sort_index()
+            chart = go.Figure(data=[go.Bar(x=daily.index, y=daily.values)])
+            chart.update_layout(title="📅 Hesitations by Day", xaxis_title="Date", yaxis_title="Hesitations")
+            st.plotly_chart(chart, use_container_width=True)
+
+            with st.expander("📄 View Raw Hesitation Logs"):
+                st.dataframe(hesitations)
+        else:
+            st.info("No hesitation events in selected date range.")
+    else:
+        st.info("No hesitation events found.")
 else:
     st.warning("No sensor data found yet.")
