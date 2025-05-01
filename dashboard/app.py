@@ -73,9 +73,9 @@ def schedule_pickup():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO scheduled_pickups (bin_id, scheduled_time)
-        VALUES (%s, %s)
-    """, ("TUS_Moylish", datetime.now()))
+        INSERT INTO scheduled_pickups (bin_id, scheduled_time, status)
+        VALUES (%s, %s, %s)
+    """, ("TUS_Moylish", datetime.now(), "Pending"))
     conn.commit()
     cursor.close()
     conn.close()
