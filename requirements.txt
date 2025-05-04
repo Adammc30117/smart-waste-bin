@@ -1,2 +1,8 @@
 streamlit
 pandas
+mysql-connector-python
+plotly
+streamlit-autorefresh
+gpiozero
+lgpio
+DFRobot_HX711_I2C @ git+https://github.com/DFRobot/DFRobot_HX711_I2C.git
