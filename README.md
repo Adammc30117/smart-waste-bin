@@ -93,8 +93,6 @@ streamlit run dashboard/waste_facility.py
 - MySQL Connector: https://dev.mysql.com/doc/connector-python/en/
 - Plotly Express: https://plotly.com/python/plotly-express/
 - GPIO usage via `lgpio`: https://abyz.me.uk/lg/lgpio.html
-- Ultrasonic Sensor setup: [Core Electronics Tutorial](https://core-electronics.com.au/tutorials/ultrasonic-distance-sensor-pi.html)
-- PIR Motion Detection (Logic): [YouTube Guide](https://www.youtube.com/watch?v=za0Q8ZpWtnQ)
 - HX711 Weight Sensor (DFRobot): https://wiki.dfrobot.com/HX711_Weight_Sensor_Kit_SKU_KIT0176
 
 ---
