@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ### 3. Set Up MySQL Database
 - Use **phpMyAdmin** (from XAMPP) or the MySQL CLI.
 - Create a database named: `smart_bins`
-- Import the SQL schema from the provided file `database.txt`
+- Import the SQL schema from the provided file `database_setup.sql`
 - Update the password field in the sensor and dashboard Python files to match your local MySQL credentials:
 
 ```python
