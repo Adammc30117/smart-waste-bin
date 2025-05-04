@@ -1,4 +1,16 @@
 # --- Waste Facility Dashboard (waste_facility.py) ---
+# This dashboard allows the waste facility to view scheduled bin pickups, update statuses, and monitor collection data.
+# Developed as part of a smart waste management proof-of-concept.
+#
+#  Sources of Learning and Code Structure:
+# - Streamlit Documentation: https://docs.streamlit.io/
+# - MySQL Connector/Python: https://dev.mysql.com/doc/connector-python/en/
+# - pandas SQL integration: https://pandas.pydata.org/docs/reference/api/pandas.read_sql.html
+# - Plotly Express charts: https://plotly.com/python/plotly-express/
+# - Pagination logic for Streamlit adapted from discussions and examples on Streamlit Discourse and Stack Overflow.
+#
+# All code authored and assembled by Adam McLoughlin. Where tutorials inspired logic, credit is attributed in-line.
+
 import streamlit as st
 import mysql.connector
 import pandas as pd

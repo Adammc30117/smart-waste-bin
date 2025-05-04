@@ -1,11 +1,23 @@
 # --- TUS Moylish Bin Dashboard (app.py) ---
-import streamlit as st
-from streamlit_autorefresh import st_autorefresh
-import mysql.connector
-import pandas as pd
-from datetime import datetime
-import plotly.graph_objects as go
 
+# -------------------------
+# Sources and References:
+# - Streamlit Docs: https://docs.streamlit.io/
+# - Streamlit Autorefresh: https://pypi.org/project/streamlit-autorefresh/
+# - Plotly Docs: https://plotly.com/python/
+# - MySQL Connector: https://dev.mysql.com/doc/connector-python/en/
+# - Pandas Docs: https://pandas.pydata.org/docs/
+# - Python datetime: https://docs.python.org/3/library/datetime.html
+# -------------------------
+
+import streamlit as st
+from streamlit_autorefresh import st_autorefresh  # Source: streamlit-autorefresh module
+import mysql.connector  # Source: MySQL Connector/Python docs
+import pandas as pd
+from datetime import datetime  # Source: Python datetime docs
+import plotly.graph_objects as go  # Source: Plotly for Python
+
+# --- Streamlit page config and auto-refresh ---
 st.set_page_config(page_title="Smart Waste Bin", layout="centered")
 st_autorefresh(interval=5000, limit=None, key="weight_data_refresh")
 
@@ -27,7 +39,7 @@ def get_latest_data():
         ORDER BY timestamp DESC 
         LIMIT 1
     """
-    df = pd.read_sql(query, conn)
+    df = pd.read_sql(query, conn)  # Source: pandas.read_sql for MySQL query execution
     conn.close()
     return df.iloc[0] if not df.empty else None
 
@@ -80,7 +92,7 @@ def schedule_pickup():
     cursor.close()
     conn.close()
 
-# --- UI ---
+# --- Streamlit UI rendering ---
 st.title("🔑️ TUS Moylish Bin Dashboard")
 data = get_latest_data()
 
