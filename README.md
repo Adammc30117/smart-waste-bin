@@ -56,7 +56,7 @@ mysql.connector.connect(
 
 ---
 
-📸 Wiring Instructions
+## 📸 Wiring Instructions
 Refer to the Sensor Wiring Guide (Word Doc) for full wiring details of the ultrasonic sensor, PIR motion sensor, weight sensor, and LED indicator.
 This document includes pin mappings, resistor placements, and setup photos to help replicate the hardware configuration on your Raspberry Pi.
 
